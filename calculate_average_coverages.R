@@ -4,7 +4,6 @@
 ## DESCRIPTION: This script will aggregate average coverages per sample from sns-wes pipeline output
 
 # ~~~~~~~ FUNCTIONS ~~~~~~~ #
-
 get_sampleID_from_filename <- function(filename){
     return(gsub(pattern = '.sample_interval_summary', replacement = '', x = filename))
 }
@@ -48,6 +47,14 @@ chrom_regions2df <- function(regions){
 write_BED <- function(df, output_file){
     write.table(x = df, file = output_file, quote = FALSE, sep = '\t', row.names = FALSE, col.names = FALSE)
 }
+
+# ~~~~~ GET SCRIPT ARGS ~~~~~~~ #
+args <- commandArgs(TRUE)
+
+output_file_prefix <- args[1]
+print("output prefix is:")
+print(output_file_prefix)
+
 # ~~~~~~~ FILE LOCATIONS ~~~~~~~ #
 run_analysis_dir <- "run_analysis_output"
 coverages_dir <- file.path(run_analysis_dir, "QC-coverage")
@@ -59,7 +66,7 @@ coverage_files <- dir(path = coverages_dir, pattern = "interval_summary", full.n
 # ~~~~~~~ IMPORT AVERAGE COVERAGE PER REGION PER SAMPLE ~~~~~~~ #
 all_coverages_df <- build_all_coverages_df(coverage_files)
 
-avg_file = "average_coverage_per_sample.tsv"
+avg_file = paste0(output_file_prefix, "_average_coverage_per_sample.tsv")
 message(sprintf("Writing sample averages to file: %s", avg_file))
 write.table(x = all_coverages_df, sep = '\t', quote = FALSE, row.names = TRUE, col.names = NA, 
             file = avg_file)
@@ -69,7 +76,7 @@ write.table(x = all_coverages_df, sep = '\t', quote = FALSE, row.names = TRUE, c
 region_coverages_df <- as.data.frame(rowMeans(all_coverages_df))
 colnames(region_coverages_df) <- "average_coverage"
 
-region_avg_file = "average_coverage_per_region.tsv"
+region_avg_file = paste0(output_file_prefix, "_average_coverage_per_region.tsv")
 message(sprintf("Writing region averages to file: %s", region_avg_file))
 write.table(x = region_coverages_df, sep = '\t', quote = FALSE, row.names = TRUE, col.names = FALSE, file = region_avg_file)
 
@@ -82,7 +89,7 @@ message(sprintf("Finding regions with coverage below %s", low_cutoff))
 low_regions <- region_coverages_df[region_coverages_df["average_coverage"] < low_cutoff, , drop = FALSE]
 message(sprintf("Number of regions found: %s", nrow(low_regions)))
 low_regions_BED <- chrom_regions2df(rownames(low_regions))
-low_BED_file <- sprintf("regions_coverage_below_%s.bed", low_cutoff)
+low_BED_file <- sprintf("%s_regions_coverage_below_%s.bed", output_file_prefix, low_cutoff)
 message(sprintf("Writing regions to file: %s", low_BED_file))
 write_BED(df = low_regions_BED, output_file = low_BED_file)
 
@@ -91,7 +98,7 @@ message("Finding regions with coverage below 0")
 zero_regions <- region_coverages_df[region_coverages_df["average_coverage"] == 0, , drop = FALSE]
 message(sprintf("Number of regions found: %s", nrow(zero_regions)))
 zero_regions_BED <- chrom_regions2df(rownames(zero_regions))
-zero_BED_file <- "regions_with_coverage_0.bed"
+zero_BED_file <- sprintf("%s_regions_with_coverage_0.bed", output_file_prefix)
 message(sprintf("Writing regions to file: %s", zero_BED_file))
 write_BED(df = zero_regions_BED, output_file = zero_BED_file)
 
