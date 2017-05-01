@@ -60,6 +60,14 @@ try_to_save_BED <- function(df, output_file) {
     }
 }
 
+run_annotation_script <- function (bed_file) {
+    annotation_file <- gsub(pattern = ".bed", replacement = "_annotation.tsv", x = bed_file)
+    annotation_command <- sprintf("Rscript annotate_peaks.R %s %s", bed_file, annotation_file)
+    message(sprintf("Now running command:\n%s\n\n", annotation_command))
+    system(annotation_command)
+}
+
+
 # ~~~~~ GET SCRIPT ARGS ~~~~~~~ #
 args <- commandArgs(TRUE)
 
@@ -104,22 +112,16 @@ message(sprintf("Number of regions found: %s", nrow(low_regions)))
 low_BED_file <- sprintf("%s_regions_coverage_below_%s.bed", output_file_prefix, low_cutoff)
 try_to_save_BED(df = low_regions, output_file = low_BED_file)
 
-save.image()
+save.image("calculate_average_coverages.Rdata")
 
 message("Finding regions with coverage below 0")
 zero_regions <- region_coverages_df[region_coverages_df["average_coverage"] == 0, , drop = FALSE]
 message(sprintf("Number of regions found: %s", nrow(zero_regions)))
 zero_BED_file <- sprintf("%s_regions_with_coverage_0.bed", output_file_prefix)
 try_to_save_BED(df = zero_regions, output_file = zero_BED_file)
-save.image()
+save.image("calculate_average_coverages.Rdata")
 
 # ~~~~~~ RUN THE ANNOTATION SCRIPT ~~~~~~~ # 
 message("Running annotation script on low coverage BED files...")
-system(sprintf("Rscript annotate_peaks.R %s %s", 
-               low_BED_file, gsub(pattern = ".bed", 
-                                  replacement = "_annotation.tsv", 
-                                  x = low_BED_file)))
-system(sprintf("Rscript annotate_peaks.R %s %s", 
-               zero_BED_file, gsub(pattern = ".bed", 
-                                   replacement = "_annotation.tsv", 
-                                   x = zero_BED_file)))
+run_annotation_script(low_BED_file)
+run_annotation_script(zero_BED_file)
