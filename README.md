@@ -20,10 +20,16 @@ git clone https://github.com/stevekm/sns-wes-coverage-analysis.git
 cd sns-wes-coverage-analysis
 ```
 
-- Run the `calculate_average_coverages.R` script
+- Run 
 
 ```bash
-calculate_average_coverages.R "<my_analysis_ID>"
+./run.sh "<project_ID>" "<results_dirname>"
+```
+
+Example:
+
+```
+$ ./run.sh SuperEnhancer_variant_calling all_samples_all_regions
 ```
 
 # Output
