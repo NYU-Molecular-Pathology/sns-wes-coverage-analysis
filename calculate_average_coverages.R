@@ -48,6 +48,18 @@ write_BED <- function(df, output_file){
     write.table(x = df, file = output_file, quote = FALSE, sep = '\t', row.names = FALSE, col.names = FALSE)
 }
 
+try_to_save_BED <- function(df, output_file) {
+    if(nrow(df) > 0){
+        df_bed <- chrom_regions2df(rownames(df))
+        message(sprintf("Writing regions to file: %s", output_file))
+        write_BED(df = df_bed, output_file = output_file)
+        
+    } else {
+        message(sprintf("No regions present, making empty file: %s", output_file))
+        file.create(output_file)
+    }
+}
+
 # ~~~~~ GET SCRIPT ARGS ~~~~~~~ #
 args <- commandArgs(TRUE)
 
@@ -85,23 +97,20 @@ write.table(x = region_coverages_df, sep = '\t', quote = FALSE, row.names = TRUE
 # coverage < 50
 # coverage = 0
 low_cutoff <- 50
+
 message(sprintf("Finding regions with coverage below %s", low_cutoff))
 low_regions <- region_coverages_df[region_coverages_df["average_coverage"] < low_cutoff, , drop = FALSE]
 message(sprintf("Number of regions found: %s", nrow(low_regions)))
-low_regions_BED <- chrom_regions2df(rownames(low_regions))
 low_BED_file <- sprintf("%s_regions_coverage_below_%s.bed", output_file_prefix, low_cutoff)
-message(sprintf("Writing regions to file: %s", low_BED_file))
-write_BED(df = low_regions_BED, output_file = low_BED_file)
+try_to_save_BED(df = low_regions, output_file = low_BED_file)
 
+save.image()
 
 message("Finding regions with coverage below 0")
 zero_regions <- region_coverages_df[region_coverages_df["average_coverage"] == 0, , drop = FALSE]
 message(sprintf("Number of regions found: %s", nrow(zero_regions)))
-zero_regions_BED <- chrom_regions2df(rownames(zero_regions))
 zero_BED_file <- sprintf("%s_regions_with_coverage_0.bed", output_file_prefix)
-message(sprintf("Writing regions to file: %s", zero_BED_file))
-write_BED(df = zero_regions_BED, output_file = zero_BED_file)
-
+try_to_save_BED(df = zero_regions, output_file = zero_BED_file)
 save.image()
 
 # ~~~~~~ RUN THE ANNOTATION SCRIPT ~~~~~~~ # 
