@@ -1,0 +1,3 @@
+[submodule "annotate-peaks"]
+	path = annotate-peaks
+	url = https://github.com/stevekm/annotate-peaks.git

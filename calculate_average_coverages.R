@@ -60,9 +60,11 @@ try_to_save_BED <- function(df, output_file) {
     }
 }
 
-run_annotation_script <- function (bed_file) {
-    annotation_file <- gsub(pattern = ".bed", replacement = "_annotation.tsv", x = bed_file)
-    annotation_command <- sprintf("Rscript annotate_peaks.R %s %s", bed_file, annotation_file)
+run_annotation_script <- function (bed_files) {
+    bed_command <- paste(bed_files, collapse = ' ')
+    # annotation_file <- gsub(pattern = ".bed", replacement = "_annotation.tsv", x = bed_file)
+    annotation_command <- sprintf("Rscript annotate_peaks.R %s -b annotate-peaks/data/hg19/biomart_data.RData --suffix _annotation.tsv", bed_command)
+    message(sprintf("pwd is:\n%s\n\n", getwd()))
     message(sprintf("Now running command:\n%s\n\n", annotation_command))
     system(annotation_command)
 }
@@ -123,5 +125,5 @@ save.image("calculate_average_coverages.Rdata")
 
 # ~~~~~~ RUN THE ANNOTATION SCRIPT ~~~~~~~ # 
 message("Running annotation script on low coverage BED files...")
-run_annotation_script(low_BED_file)
-run_annotation_script(zero_BED_file)
+BED_to_annotate <- c(low_BED_file, zero_BED_file)
+run_annotation_script(BED_to_annotate)
