@@ -16,7 +16,7 @@ cd sns-output-dir
 - Clone this repository and enter the directory
 
 ```bash
-git clone https://github.com/stevekm/sns-wes-coverage-analysis.git
+git clone --recursive https://github.com/stevekm/sns-wes-coverage-analysis.git
 cd sns-wes-coverage-analysis
 ```
 
